@@ -101,6 +101,7 @@ class service:
     def __init__(self):
         FirstCycle = True
         next_check = False
+        _log ( "started ... (" + str(__version__) + ")" )
 
         while True:
             kodi_time = get_kodi_time()
@@ -110,41 +111,40 @@ class service:
             try:
                 supervise_end_time = int(selfAddon.getSetting('hour_end_sup').split(':')[0]+selfAddon.getSetting('hour_end_sup').split(':')[1])
             except: supervise_end_time = None
-            proceed = should_i_supervise(kodi_time,supervise_start_time,supervise_end_time)
-            if proceed:
+
+            # Variables:
+            enable_audio = audio_enable
+            enable_video = video_enable
+            maxaudio_time_in_minutes = max_time_audio
+            maxvideo_time_in_minutes = max_time_video
+            iCheckTime = check_time
+
+            if debug == 'true':
+                _log ( "DEBUG: ################################################################" )
+                _log ( "DEBUG: Settings in Kodi:" )
+                _log ( 'DEBUG: enable_audio: ' + enable_audio )
+                _log ( "DEBUG: maxaudio_time_in_minutes: " + str(maxaudio_time_in_minutes) )
+                _log ( "DEBUG: enable_video: " + str(enable_video) )
+                _log ( "DEBUG: maxvideo_time_in_minutes: " + str(maxvideo_time_in_minutes) )
+                _log ( "DEBUG: check_time: " + str(iCheckTime) )
+                _log ( "DEBUG: Supervision mode: Always")
+                _log ( "DEBUG: ################################################################" )
+                # Set this low values for easier debugging!
+                _log ( "DEBUG: debug is enabled! Override Settings:" )
+                enable_audio = 'true'
+                _log ( "DEBUG: -> enable_audio: " + str(enable_audio) )
+                maxaudio_time_in_minutes = 1
+                _log ( "DEBUG: -> maxaudio_time_in_minutes: " + str(maxaudio_time_in_minutes) )
+                enable_video = 'true'
+                _log ( "DEBUG: -> enable_video: " + str(enable_audio) )
+                maxvideo_time_in_minutes = 1
+                _log ( "DEBUG: -> maxvideo_time_in_minutes: " + str(maxvideo_time_in_minutes) )
+                iCheckTime = 1
+                _log ( "DEBUG: -> check_time: " + str(iCheckTime) )
+                _log ( "DEBUG: ----------------------------------------------------------------" )
+
+            if should_i_supervise(kodi_time,supervise_start_time,supervise_end_time):
                 if FirstCycle:
-                    # Variables:
-                    enable_audio = audio_enable
-                    enable_video = video_enable
-                    maxaudio_time_in_minutes = max_time_audio
-                    maxvideo_time_in_minutes = max_time_video
-                    iCheckTime = check_time
-
-                    _log ( "started ... (" + str(__version__) + ")" )
-                    if debug == 'true':
-                        _log ( "DEBUG: ################################################################" )
-                        _log ( "DEBUG: Settings in Kodi:" )
-                        _log ( 'DEBUG: enable_audio: ' + enable_audio )
-                        _log ( "DEBUG: maxaudio_time_in_minutes: " + str(maxaudio_time_in_minutes) )
-                        _log ( "DEBUG: enable_video: " + str(enable_video) )
-                        _log ( "DEBUG: maxvideo_time_in_minutes: " + str(maxvideo_time_in_minutes) )
-                        _log ( "DEBUG: check_time: " + str(iCheckTime) )
-                        _log ( "DEBUG: Supervision mode: Always")
-                        _log ( "DEBUG: ################################################################" )
-                        # Set this low values for easier debugging!
-                        _log ( "DEBUG: debug is enabled! Override Settings:" )
-                        enable_audio = 'true'
-                        _log ( "DEBUG: -> enable_audio: " + str(enable_audio) )
-                        maxaudio_time_in_minutes = 1
-                        _log ( "DEBUG: -> maxaudio_time_in_minutes: " + str(maxaudio_time_in_minutes) )
-                        enable_video = 'true'
-                        _log ( "DEBUG: -> enable_video: " + str(enable_audio) )
-                        maxvideo_time_in_minutes = 1
-                        _log ( "DEBUG: -> maxvideo_time_in_minutes: " + str(maxvideo_time_in_minutes) )
-                        iCheckTime = 1
-                        _log ( "DEBUG: -> check_time: " + str(iCheckTime) )
-                        _log ( "DEBUG: ----------------------------------------------------------------" )
-
                     # wait 15s before start to let Kodi finish the intro-movie
                     if xbmc.Monitor().waitForAbort(15):
                         break
@@ -268,7 +268,7 @@ class service:
                             xbmc.executebuiltin('PlayerControl(Stop)')
 
                             if audiochange == 'true':
-                                xbmc.sleep(2000) # wait 2s before changing the volume back
+                                xbmc.sleep(5000) # wait 5s before changing the volume back
                                 if (dct.has_key("result")) and (dct["result"].has_key("volume")):
                                     curVol = dct["result"]["volume"]
                                     # we can move upwards fast, because there is nothing playing
@@ -277,8 +277,9 @@ class service:
                             if enable_screensaver == 'true':
                                 if debug == 'true':
                                     _log ( "DEBUG: Activating screensaver" )
+                                xbmc.sleep(5000) # wait 5s before changing the volume back
                                 xbmc.executebuiltin('ActivateScreensaver')   
-                            
+
                             #Run a custom cmd after playback is stopped
                             if custom_cmd == 'true':
                                 if debug == 'true':
@@ -293,11 +294,10 @@ class service:
                     # reset max_time_in_minutes
                     max_time_in_minutes = -1
 
+            if debug == 'true' and next_check == 'true':
                 diff_between_idle_and_check_time = idle_time_in_minutes - int(iCheckTime)
+                _log ( "DEBUG: diff_between_idle_and_check_time: " + str(diff_between_idle_and_check_time) )
 
-                if debug == 'true' and next_check == 'true':
-                    _log ( "DEBUG: diff_between_idle_and_check_time: " + str(diff_between_idle_and_check_time) )
-
-                do_next_check(iCheckTime)
+            do_next_check(iCheckTime)
 
 service()
