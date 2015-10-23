@@ -78,9 +78,11 @@ def get_kodi_time():
     if am_pm == 'pm':
         hour = int(hour) + 12
     time_string = str(hour) + str(minute)
+    _log("DEBUG: current time %s:%s" % (hour, minute))
     return int(time_string)
 
 def should_i_supervise(kodi_time,supervise_start_time,supervise_end_time):
+    _log("DEBUG: Mode: %s Dbg: %s S: %d E: %d" % (selfAddon.getSetting('supervision_mode'), str(debug),supervise_start_time,supervise_end_time))
     if selfAddon.getSetting('supervision_mode') == '0' or debug == 'true':
         return True
 
@@ -92,6 +94,7 @@ def should_i_supervise(kodi_time,supervise_start_time,supervise_end_time):
         if kodi_time < supervise_start_time:
             kodi_time += 2400
 
+    _log( "DEBUG: T: %d S: %d E: %d" % (kodi_time,supervise_start_time,supervise_end_time))
     if supervise_start_time < kodi_time and kodi_time < supervise_end_time:
         return True
     else:
@@ -140,10 +143,12 @@ class service:
                 maxvideo_time_in_minutes = 1
                 _log ( "DEBUG: -> maxvideo_time_in_minutes: " + str(maxvideo_time_in_minutes) )
                 iCheckTime = 1
+                time_to_wait = 20
                 _log ( "DEBUG: -> check_time: " + str(iCheckTime) )
                 _log ( "DEBUG: ----------------------------------------------------------------" )
 
             if should_i_supervise(kodi_time,supervise_start_time,supervise_end_time):
+                _log( "DEBUG: should_i_supervise True")
                 if FirstCycle:
                     # wait 15s before start to let Kodi finish the intro-movie
                     if xbmc.Monitor().waitForAbort(15):
@@ -269,6 +274,8 @@ class service:
 
                             if audiochange == 'true':
                                 xbmc.sleep(5000) # wait 5s before changing the volume back
+                                print "DEBUG "
+                                print dct
                                 if (dct.has_key("result")) and (dct["result"].has_key("volume")):
                                     curVol = dct["result"]["volume"]
                                     # we can move upwards fast, because there is nothing playing
@@ -293,7 +300,8 @@ class service:
                         _log ( "DEBUG: Not playing any media file" )
                     # reset max_time_in_minutes
                     max_time_in_minutes = -1
-
+            else:
+                _log( "DEBUG: should_i_supervise False")
             if debug == 'true' and next_check == 'true':
                 diff_between_idle_and_check_time = idle_time_in_minutes - int(iCheckTime)
                 _log ( "DEBUG: diff_between_idle_and_check_time: " + str(diff_between_idle_and_check_time) )
